@@ -23,6 +23,7 @@ from google.protobuf.message import DecodeError
 from s2sphere import *
 from datetime import datetime
 from geopy.geocoders import GoogleV3
+from geopy.geocoders import Nominatim
 from gpsoauth import perform_master_login, perform_oauth
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -164,7 +165,7 @@ def retrying_set_location(location_name):
 
 
 def set_location(location_name):
-    geolocator = GoogleV3()
+    geolocator = Nominatim() #GoogleV3()
     prog = re.compile('^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$')
     global origin_lat
     global origin_lon
