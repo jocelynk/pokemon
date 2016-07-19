@@ -3,6 +3,7 @@
 
 import flask
 from flask import Flask, render_template
+from flask import request, url_for, redirect
 from flask_googlemaps import GoogleMaps
 from flask_googlemaps import Map
 from flask_googlemaps import icons
@@ -761,6 +762,22 @@ def create_app():
 
 
 app = create_app()
+
+@app.route('/set_loc')
+def render_login_page():
+    return render_template('user_location.html')
+
+@app.route('/location', methods=['GET'])
+def location():
+    print("in location method")
+    debug("==================")
+    args.location=request.args['location']
+    retrying_set_location(args.location)
+    register_background_thread(initial_registration=True)
+    return redirect("http://127.0.0.1:5000/", code=302)
+    #fullmap()
+    #return redirect("http://127.0.0.1:5000/", code=302)
+    #return render_template('test.html', location=location)
 
 
 @app.route('/data')
