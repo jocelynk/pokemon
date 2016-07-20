@@ -549,12 +549,12 @@ def login(args):
 
     return api_endpoint, access_token, profile_response
 
-def main(location):
+def main():
     full_path = os.path.realpath(__file__)
     (path, filename) = os.path.split(full_path)
 
     args = get_args()
-    args.location = location
+    #args.location = location
 
     if args.auth_service not in ['ptc', 'google']:
         print '[!] Invalid Auth service specified'
@@ -584,7 +584,9 @@ def main(location):
 
     api_endpoint, access_token, profile_response = login(args)
 
-    while not reset:
+    global RESET
+    debug(RESET)
+    while not RESET:
         clear_stale_pokemons()
 
         steplimit = int(args.step_limit)
@@ -768,15 +770,22 @@ app = create_app()
 
 @app.route('/set_loc')
 def render_login_page():
+    global RESET
+    RESET = 1
     return render_template('user_location.html')
 
 @app.route('/location', methods=['GET'])
 def location():
     print("in location method")
+    global RESET
+    RESET = 0
     debug("==================")
     args.location=request.args['location']
     retrying_set_location(args.location)
-    register_background_thread(initial_registration=True)
+    main()
+    # global search_thread
+    # if not search_thread:
+    #     register_background_thread(initial_registration=True)
     return redirect("http://127.0.0.1:5000/", code=302)
     #fullmap()
     #return redirect("http://127.0.0.1:5000/", code=302)
