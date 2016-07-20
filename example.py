@@ -65,6 +65,7 @@ FLOAT_LAT = 0
 FLOAT_LONG = 0
 NEXT_LAT = 0
 NEXT_LONG = 0
+RESET = 0
 auto_refresh = 0
 default_step = 0.001
 api_endpoint = None
@@ -548,11 +549,12 @@ def login(args):
 
     return api_endpoint, access_token, profile_response
 
-def main():
+def main(location):
     full_path = os.path.realpath(__file__)
     (path, filename) = os.path.split(full_path)
 
     args = get_args()
+    args.location = location
 
     if args.auth_service not in ['ptc', 'google']:
         print '[!] Invalid Auth service specified'
@@ -582,52 +584,54 @@ def main():
 
     api_endpoint, access_token, profile_response = login(args)
 
-    clear_stale_pokemons()
+    while not reset:
+        clear_stale_pokemons()
 
-    steplimit = int(args.step_limit)
+        steplimit = int(args.step_limit)
 
-    ignore = []
-    only = []
-    if args.ignore:
-        ignore = [i.lower().strip() for i in args.ignore.split(',')]
-    elif args.only:
-        only = [i.lower().strip() for i in args.only.split(',')]
+        ignore = []
+        only = []
+        if args.ignore:
+            ignore = [i.lower().strip() for i in args.ignore.split(',')]
+        elif args.only:
+            only = [i.lower().strip() for i in args.only.split(',')]
 
-    pos = 1
-    x = 0
-    y = 0
-    dx = 0
-    dy = -1
-    steplimit2 = steplimit**2
-    for step in range(steplimit2):
-        #starting at 0 index
-        debug('looping: step {} of {}'.format((step+1), steplimit**2))
-        #debug('steplimit: {} x: {} y: {} pos: {} dx: {} dy {}'.format(steplimit2, x, y, pos, dx, dy))
-        # Scan location math
-        if -steplimit2 / 2 < x <= steplimit2 / 2 and -steplimit2 / 2 < y <= steplimit2 / 2:
-            set_location_coords(x * 0.0025 + origin_lat, y * 0.0025 + origin_lon, 0)
-        if x == y or x < 0 and x == -y or x > 0 and x == 1 - y:
-            (dx, dy) = (-dy, dx)
+        pos = 1
+        x = 0
+        y = 0
+        dx = 0
+        dy = -1
+        steplimit2 = steplimit**2
+        for step in range(steplimit2):
+            #starting at 0 index
+            debug('looping: step {} of {}'.format((step+1), steplimit**2))
+            #debug('steplimit: {} x: {} y: {} pos: {} dx: {} dy {}'.format(steplimit2, x, y, pos, dx, dy))
+            # Scan location math
+            if -steplimit2 / 2 < x <= steplimit2 / 2 and -steplimit2 / 2 < y <= steplimit2 / 2:
+                set_location_coords(x * 0.0025 + origin_lat, y * 0.0025 + origin_lon, 0)
+            if x == y or x < 0 and x == -y or x > 0 and x == 1 - y:
+                (dx, dy) = (-dy, dx)
 
-        (x, y) = (x + dx, y + dy)
+            (x, y) = (x + dx, y + dy)
 
-        process_step(args, api_endpoint, access_token, profile_response,
-                     pokemonsJSON, ignore, only)
+            process_step(args, api_endpoint, access_token, profile_response,
+                         pokemonsJSON, ignore, only)
 
-        print('Completed: ' + str(
-            ((step+1) + pos * .25 - .25) / (steplimit2) * 100) + '%')
+            print('Completed: ' + str(
+                ((step+1) + pos * .25 - .25) / (steplimit2) * 100) + '%')
 
-    global NEXT_LAT, NEXT_LONG
-    if (NEXT_LAT and NEXT_LONG and
-            (NEXT_LAT != FLOAT_LAT or NEXT_LONG != FLOAT_LONG)):
-        print('Update to next location %f, %f' % (NEXT_LAT, NEXT_LONG))
-        set_location_coords(NEXT_LAT, NEXT_LONG, 0)
-        NEXT_LAT = 0
-        NEXT_LONG = 0
-    else:
-        set_location_coords(origin_lat, origin_lon, 0)
-
-    register_background_thread()
+        global NEXT_LAT, NEXT_LONG
+        if (NEXT_LAT and NEXT_LONG and
+                (NEXT_LAT != FLOAT_LAT or NEXT_LONG != FLOAT_LONG)):
+            print('Update to next location %f, %f' % (NEXT_LAT, NEXT_LONG))
+            set_location_coords(NEXT_LAT, NEXT_LONG, 0)
+            NEXT_LAT = 0
+            NEXT_LONG = 0
+        else:
+            set_location_coords(origin_lat, origin_lon, 0)
+        time.sleep(30)
+    debug("Exiting main method")
+    #register_background_thread()
 
 
 def process_step(args, api_endpoint, access_token, profile_response,
