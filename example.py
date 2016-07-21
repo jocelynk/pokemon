@@ -40,7 +40,7 @@ LOGIN_URL = \
 LOGIN_OAUTH = 'https://sso.pokemon.com/sso/oauth2.0/accessToken'
 APP = 'com.nianticlabs.pokemongo'
 
-with open('credentials.json') as file:
+with open(os.path.dirname(os.path.abspath(__file__)) + '/credentials.json') as file:
 	credentials = json.load(file)
 
 PTC_CLIENT_SECRET = credentials.get('ptc_client_secret', None)
@@ -786,10 +786,9 @@ def location():
     # global search_thread
     # if not search_thread:
     #     register_background_thread(initial_registration=True)
-    return redirect("http://127.0.0.1:5000/", code=302)
-    #fullmap()
-    #return redirect("http://127.0.0.1:5000/", code=302)
-    #return render_template('test.html', location=location)
+    return redirect("ec2-54-198-196-111.compute-1.amazonaws.com/", code=302)
+    # redirect("http://127.0.0.1:5000/", code=302)
+
 
 
 @app.route('/data')
